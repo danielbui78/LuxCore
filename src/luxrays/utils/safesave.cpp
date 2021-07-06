@@ -51,13 +51,41 @@ void SafeSave::Process() const {
 		// Check if there is an old copy
 		if (boost::filesystem::exists(fileNameCopy)) {
 			// Erase the old copy
-			boost::filesystem::remove(fileNameCopy);
+			try 
+			{
+				boost::filesystem::remove(fileNameCopy);
+			}
+			catch (boost::filesystem::filesystem_error& e)
+			{
+				printf("WARNING: failed remove fileNameCopy.");
+				return;
+			}
+
 		}
 
 		// Rename the new copy
-		boost::filesystem::rename(fileName, fileNameCopy);
+		try
+		{
+			boost::filesystem::rename(fileName, fileNameCopy);
+		}
+		catch (boost::filesystem::filesystem_error& e)
+		{
+			printf("WARNING: failed rename fileNameCopy.");
+			return;
+		}
+
 	}
 
 	// Rename the temporary file to file name
-	boost::filesystem::rename(fileNameTmp, fileName);
+	try 
+	{
+		boost::filesystem::rename(fileNameTmp, fileName);
+	}
+	catch (boost::filesystem::filesystem_error& e)
+	{
+		printf("WARNING: failed rename fileNameTmp.");
+		return;
+	}
+
+
 }
