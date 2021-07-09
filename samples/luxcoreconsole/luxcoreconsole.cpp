@@ -38,6 +38,20 @@ using namespace std;
 using namespace luxrays;
 using namespace luxcore;
 
+bool abort_gracefully;
+
+#include <signal.h>
+/* Signal Handler for SIGINT */
+void sigintHandler(int sig_num)
+{
+	/* Reset handler to catch SIGINT next time.
+	   Refer http://en.cppreference.com/w/c/program/signal */
+	signal(SIGINT, sigintHandler);
+	printf("\n INFO: SIGINT (CTRL+C) received. Cleaning up and exiting... \n");
+	fflush(stdout);
+	abort_gracefully = true;
+}
+
 static string GetFileNameExt(const string &fileName) {
 	return boost::algorithm::to_lower_copy(boost::filesystem::path(fileName).extension().string());
 }
@@ -52,7 +66,8 @@ static void BatchRendering(RenderConfig *config, RenderState *startState, Film *
 	session->Start();
 
 	const Properties &stats = session->GetStats();
-	while (!session->HasDone()) {
+	while (!session->HasDone() && !abort_gracefully) 
+	{
 		boost::this_thread::sleep(boost::posix_time::millisec(1000));
 		session->UpdateStats();
 
@@ -83,6 +98,11 @@ static void BatchRendering(RenderConfig *config, RenderState *startState, Film *
 int main(int argc, char *argv[]) {
 	// This is required to run AMD GPU profiler
 	//XInitThreads();
+
+	abort_gracefully = false;
+	/* Set the SIGINT (Ctrl-C) signal handler to sigintHandler
+	Refer http://en.cppreference.com/w/c/program/signal */
+	signal(SIGINT, sigintHandler);
 
 	try {
 		// Initialize LuxCore
