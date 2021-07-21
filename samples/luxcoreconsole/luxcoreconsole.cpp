@@ -81,6 +81,18 @@ static void BatchRendering(RenderConfig *config, RenderState *startState, Film *
 				int(elapsedTime) % int(haltTime) % pass % haltSpp % (100.f * convergence) %
 				(stats.Get("stats.renderengine.total.samplesec").Get<double>() / 1000000.0) %
 				(stats.Get("stats.dataset.trianglecount").Get<double>() / 1000.0)));
+
+#ifdef WIN32
+		// Windows does not have native SIGINT, so look for CTRL+C character code (when used as console-less windows process)
+		if (GetAsyncKeyState(VK_CONTROL))
+		{
+			if (GetAsyncKeyState(0x43)) // C
+//			if (GetAsyncKeyState(0x51)) // Q
+			{
+				abort_gracefully = true;
+			}
+		}
+#endif
 	}
 
 	// Stop the rendering
