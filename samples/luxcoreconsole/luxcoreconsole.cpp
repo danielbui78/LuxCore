@@ -47,7 +47,7 @@ void sigintHandler(int sig_num)
 	/* Reset handler to catch SIGINT next time.
 	   Refer http://en.cppreference.com/w/c/program/signal */
 	signal(SIGINT, sigintHandler);
-	printf("\n INFO: SIGINT (CTRL+C) received. Cleaning up and exiting... \n");
+	printf("[LuxCore] SIGINT received.\n");
 	fflush(stdout);
 	abort_gracefully = true;
 }
@@ -93,6 +93,13 @@ static void BatchRendering(RenderConfig *config, RenderState *startState, Film *
 			}
 		}
 #endif
+	}
+
+	if (abort_gracefully)
+	{
+		printf("\n[LuxCore] Abort received. Attempting graceful shutdown....\n\n");
+//		fprintf(stderr, "\n[LuxCore] stderr: Abort received. Attempting graceful shutdown....\n\n");
+		fflush(stdout);
 	}
 
 	// Stop the rendering
