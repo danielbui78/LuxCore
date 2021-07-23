@@ -84,14 +84,21 @@ static void BatchRendering(RenderConfig *config, RenderState *startState, Film *
 
 #ifdef WIN32
 		// Windows does not have native SIGINT, so look for CTRL+C character code (when used as console-less windows process)
-		if (GetAsyncKeyState(VK_CONTROL))
+//		if (GetAsyncKeyState(VK_CONTROL))
+//		{
+//			if (GetAsyncKeyState(0x43)) // C
+////			if (GetAsyncKeyState(0x51)) // Q
+//			{
+//				abort_gracefully = true;
+//			}
+//		}
+		MSG msg;
+		if (PeekMessage(&msg, (HWND) -1, 0, 0, 0))
 		{
-			if (GetAsyncKeyState(0x43)) // C
-//			if (GetAsyncKeyState(0x51)) // Q
-			{
+			if (msg.lParam != 0)
 				abort_gracefully = true;
-			}
 		}
+
 #endif
 	}
 
