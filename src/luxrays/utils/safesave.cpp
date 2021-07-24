@@ -45,6 +45,9 @@ SafeSave::~SafeSave() {
 
 void SafeSave::Process() const {
 	const string fileNameCopy = fileName + ".bak";
+	bool bCopyVacant = true;
+	bool bFileVacant = true;
+	bool bMustRemoveTmp = false;
 
 	// Check if the file already exists
 	if (boost::filesystem::exists(fileName)) {
@@ -58,33 +61,69 @@ void SafeSave::Process() const {
 			catch (boost::filesystem::filesystem_error& e)
 			{
 				printf("WARNING: failed remove fileNameCopy.");
-				return;
+				bCopyVacant = false;
 			}
 
 		}
 
 		// Rename the new copy
-		try
+		if (bCopyVacant)
 		{
-			boost::filesystem::rename(fileName, fileNameCopy);
+			// rename if oldcopy removed
+			try
+			{
+				boost::filesystem::rename(fileName, fileNameCopy);
+			}
+			catch (boost::filesystem::filesystem_error& e)
+			{
+				printf("WARNING: failed rename fileNameCopy.");
+				bFileVacant = false;
+			}
 		}
-		catch (boost::filesystem::filesystem_error& e)
+		else
 		{
-			printf("WARNING: failed rename fileNameCopy.");
-			return;
+			// otherwise delete
+			try
+			{
+				boost::filesystem::remove(fileName);
+			}
+			catch (boost::filesystem::filesystem_error& e)
+			{
+				printf("\nWARNING: failed remove %s.\n", fileName);
+				bFileVacant = false;
+			}
 		}
 
 	}
 
 	// Rename the temporary file to file name
-	try 
+	if (bFileVacant)
 	{
-		boost::filesystem::rename(fileNameTmp, fileName);
+		// rename if fileName is vacant
+		try
+		{
+			boost::filesystem::rename(fileNameTmp, fileName);
+		}
+		catch (boost::filesystem::filesystem_error& e)
+		{
+			printf("\nWARNING: failed rename %s.\n", fileNameTmp);
+			bMustRemoveTmp = true;
+		}
 	}
-	catch (boost::filesystem::filesystem_error& e)
+
+	if (bFileVacant == false || bMustRemoveTmp == true)
 	{
-		printf("WARNING: failed rename fileNameTmp.");
-		return;
+		// remove temp 
+		try
+		{
+			boost::filesystem::remove(fileNameTmp);
+		}
+		catch (boost::filesystem::filesystem_error& e)
+		{
+			printf("\nERROR: failed to remove %s.\n", fileNameTmp);
+			exit(-1);
+		}
+
 	}
 
 
